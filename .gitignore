@@ -1,0 +1,20 @@
+### Python ###
+.venv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+### SublimeText ###
+*.sublime-workspace
+*.sublime-project
+
+### R ###
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# RStudio files
+.Rproj.user/
