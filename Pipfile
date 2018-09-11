@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "*"
+matplotlib = "*"
+pulp = "*"
+scipy = "*"
+
+[dev-packages]
+jupyter = "*"
+
+[requires]
+python_version = "3.7"
