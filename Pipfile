@@ -8,6 +8,8 @@ numpy = "*"
 matplotlib = "*"
 pulp = "*"
 scipy = "*"
+pandas = "*"
+cytoolz = "*"
 
 [dev-packages]
 jupyter = "*"
