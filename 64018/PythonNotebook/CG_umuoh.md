@@ -9,6 +9,33 @@ from collections import defaultdict
 from functools import reduce
 ```
 
+This is the logic I followed:
+
+We have 21 students who need to be assigned into 7 groups of 3.
+
+We have data on the following traits of the students: 
+    1. Academic background
+    2. Programming experience
+    3. Comfort with public speaking
+    
+Academic background and programming experience carries a weight of 40% while Comfort with public speaking carries a wieght of 20%
+
+__Variables__
+
+Xij = 1, if person i belongs to group j; 0 otherwise
+
+__Constraints__
+
+* A person can belong to no more than one group.
+* A group can only have 3 students.
+* Each group must meet a minimum value for each trait. (Reviewing the dataset my group and I came up with minimum values through experimentation)
+
+__Objective__
+
+This is maximization problem where I try to maximize the programming experience and academic background for each group. We can also use the other characteristics, or all of them.
+
+Let's create helper functions to assist in operating on the model.
+
 
 ```python
 def create_prob(prob_name: str, sense: int) -> lp.LpProblem:
@@ -26,6 +53,8 @@ def add_constraint(lp_prob: lp.LpProblem, constrs: Sequence[lp.LpConstraint]) ->
 def head(x: Sequence) -> Any:
     return x[0]
 ```
+
+Using pandas we will read a csv having containing all the information regarding students.
 
 
 ```python
@@ -105,6 +134,8 @@ df.head()
 </div>
 
 
+
+Let's view a summary of the dataset
 
 
 ```python
@@ -203,8 +234,34 @@ students: pd.DataFrame = df.loc[:, ['Name']]
 aca_bkg: pd.Series = df.loc[:, 'ACA_BKG']
 pg_exp: pd.Series = df.loc[:, 'PG_EXP']
 pb_spk: pd.Series = df.loc[:, 'PB_SPK']
+```
+
+Groups range from 1 to 7
+
+
+```python
 groups: pd.Series = pd.Series([f'G{i}' for i in range(1, 8)], dtype=str)
 ```
+
+
+```python
+print(groups)
+```
+
+    0    G1
+    1    G2
+    2    G3
+    3    G4
+    4    G5
+    5    G6
+    6    G7
+    dtype: object
+
+
+`X_ij` is our decision variable where
+
+`i` represent students from 1..21
+`j` represent groups from 1..7
 
 
 ```python
@@ -222,7 +279,6 @@ X_ij = lp.LpVariable.dicts('X_ij',
 
 
 ```python
-# Objective Function
 sum_of_var = [
     0.3 * aca_bkg[i] * 0.3 * pg_exp[i] * X_ij[(group, head(val))] +
     0.3 * aca_bkg[i] * 0.3 * pg_exp[i] * X_ij[(group, head(val))] +
@@ -234,15 +290,18 @@ sum_of_var = [
     for group in groups for i, val in enumerate(students.values)
 ]
 
+# Objective Function
 obj_fn = lp.lpSum(sum_of_var)
 ```
 
+# Constraints
+
+## Individual contraints 
+
+The first set of contraints is that every student has an equal chance of being in a group
+
 
 ```python
-    # Constraints
-#
-
-# Individual
 const_for_indv1 = lp.lpSum([X_ij[(group, 'Omeike Stanley')] for group in groups]) == 1
 const_for_indv2 = lp.lpSum([X_ij[(group, 'Muoh Uzoma')] for group in groups]) == 1
 const_for_indv3 = lp.lpSum([X_ij[(group, 'Palaniappan Sakana')] for group in groups]) == 1
@@ -266,9 +325,12 @@ const_for_indv20 = lp.lpSum([X_ij[(group, 'Sudalagunta Spandana')] for group in 
 const_for_indv21 = lp.lpSum([X_ij[(group, 'Zhao Yuhan')] for group in groups]) == 1
 ```
 
+## Group contraints
+
+### A group can only be composed of 3 students
+
 
 ```python
-# Group
 const_for_g1 = lp.lpSum([X_ij[('G1', head(i))] for i in students.values]) == 3
 const_for_g2 = lp.lpSum([X_ij[('G2', head(i))] for i in students.values]) == 3
 const_for_g3 = lp.lpSum([X_ij[('G3', head(i))] for i in students.values]) == 3
@@ -278,10 +340,11 @@ const_for_g6 = lp.lpSum([X_ij[('G6', head(i))] for i in students.values]) == 3
 const_for_g7 = lp.lpSum([X_ij[('G7', head(i))] for i in students.values]) == 3
 ```
 
+### The academic background of a group should be greater than 2
+
 
 ```python
 # ACA_BKG for group
-#
 aca_bkg_for_g1 = lp.lpSum([aca_bkg[i] * X_ij[('G1', head(st))] for i, st in enumerate(students.values)]) >= 2
 aca_bkg_for_g2 = lp.lpSum([aca_bkg[i] * X_ij[('G2', head(st))] for i, st in enumerate(students.values)]) >= 2
 aca_bkg_for_g3 = lp.lpSum([aca_bkg[i] * X_ij[('G3', head(st))] for i, st in enumerate(students.values)]) >= 2
@@ -290,6 +353,8 @@ aca_bkg_for_g5 = lp.lpSum([aca_bkg[i] * X_ij[('G5', head(st))] for i, st in enum
 aca_bkg_for_g6 = lp.lpSum([aca_bkg[i] * X_ij[('G6', head(st))] for i, st in enumerate(students.values)]) >= 2
 aca_bkg_for_g7 = lp.lpSum([aca_bkg[i] * X_ij[('G7', head(st))] for i, st in enumerate(students.values)]) >= 2
 ```
+
+ ### The public speaking level or level of comfort of a group should be greater than 3
 
 
 ```python
@@ -304,6 +369,8 @@ pb_spk_for_g6 = lp.lpSum([pb_spk[i] * X_ij[('G6', head(st))] for i, st in enumer
 pb_spk_for_g7 = lp.lpSum([pb_spk[i] * X_ij[('G7', head(st))] for i, st in enumerate(students.values)]) >= 3
 ```
 
+ ### The programming experience of a group should be greater than 3
+
 
 ```python
 # PG_EXP for group
@@ -316,6 +383,8 @@ pg_exp_for_g5 = lp.lpSum([pg_exp[i] * X_ij[('G5', head(st))] for i, st in enumer
 pg_exp_for_g6 = lp.lpSum([pg_exp[i] * X_ij[('G6', head(st))] for i, st in enumerate(students.values)]) >= 4
 pg_exp_for_g7 = lp.lpSum([pg_exp[i] * X_ij[('G7', head(st))] for i, st in enumerate(students.values)]) >= 4
 ```
+
+### We then add the objective function and all the contraints to the model
 
 
 ```python
@@ -360,6 +429,8 @@ model = add_constraint(model, (
     pg_exp_for_g7,
 ))
 ```
+
+### Let's view the summary of the lp problem
 
 
 ```python
@@ -919,19 +990,21 @@ lp.value(model.objective)
 
 
 ```python
-groups = defaultdict(list)
+groups_dict = defaultdict(list)
 
 for group, student in X_ij:
     assign_status = lp.value(X_ij[(group, student)])
     if assign_status == 0:
         continue
-    groups[group].append(student)
+    groups_dict[group].append(student)
 ```
 
 
 ```python
-group_df = pd.DataFrame(groups)
+group_df = pd.DataFrame(groups_dict)
 ```
+
+### The group assignment is as follows
 
 
 ```python
