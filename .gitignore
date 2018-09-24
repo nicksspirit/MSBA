@@ -23,4 +23,5 @@
 
 # RStudio files
 .Rproj.user/
-64018.Rproj
+*.Rproj
+.Rproj.user
