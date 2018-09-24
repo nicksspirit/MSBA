@@ -6,6 +6,7 @@ import pulp as lp
 from typing import Sequence, Any
 from operator import iadd
 from collections import defaultdict
+from functools import reduce
 ```
 
 
@@ -19,11 +20,7 @@ def add_obj_fn(lp_prob: lp.LpProblem, dvar: lp.LpAffineExpression) -> lp.LpProbl
 
 
 def add_constraint(lp_prob: lp.LpProblem, constrs: Sequence[lp.LpConstraint]) -> lp.LpProblem:
-    lp_prob_i = lp_prob
-    for constr in constrs:
-        lp_prob_i = iadd(lp_prob_i, constr)
-
-    return lp_prob_i
+   return reduce(iadd, constrs, lp_prob)
 
 
 def head(x: Sequence) -> Any:
@@ -32,7 +29,7 @@ def head(x: Sequence) -> Any:
 
 
 ```python
-df = pd.read_csv('../data/class-stats.csv')
+df = pd.read_csv('data/class-stats.csv')
 ```
 
 
