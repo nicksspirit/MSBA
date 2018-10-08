@@ -13,7 +13,7 @@ cytoolz = "*"
 
 [dev-packages]
 jupyter = "*"
-python-language-server = "*"
+python-language-server = {version = "*", extras = ["yapf"]}
 
 [requires]
 python_version = "3.7"
