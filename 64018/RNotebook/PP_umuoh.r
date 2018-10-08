@@ -21,7 +21,7 @@ lp_do <- function(fn, value, dv_labels = c(""), constr_lables = c("")) {
            },
            "get.variables" = {
                    dv <- fn(value)
-               
+
                    if (length(dv_labels) != length(dv)) {
                        return(dv)
                    }
@@ -30,7 +30,7 @@ lp_do <- function(fn, value, dv_labels = c(""), constr_lables = c("")) {
                            DV = dv_labels,
                            Values = dv
                        )
-                       
+
                        return(dv_df)
                    }
            },
@@ -45,7 +45,7 @@ lp_do <- function(fn, value, dv_labels = c(""), constr_lables = c("")) {
                            Constraints = unlist(fmted_lables),
                            Answers = dv
                        )
-                       
+
                        return(dv_df)
                    }
            }
