@@ -1,8 +1,14 @@
 import pandas as pd
 import pulp as lp
-from typing import Sequence, Any
+from typing import Sequence, Any, DefaultDict
 from operator import iadd
 from collections import defaultdict
+from functools import reduce, partial
+from cytoolz import assoc
+
+#  Create a partially applied function
+#  for creating a new defaultdict which uses List as its factory
+assoc_d = partial(assoc, factory=lambda: defaultdict(list))
 
 
 def create_prob(prob_name: str, sense: int) -> lp.LpProblem:
@@ -14,15 +20,21 @@ def add_obj_fn(lp_prob: lp.LpProblem, dvar: lp.LpAffineExpression) -> lp.LpProbl
 
 
 def add_constraint(lp_prob: lp.LpProblem, constrs: Sequence[lp.LpConstraint]) -> lp.LpProblem:
-    lp_prob_i = lp_prob
-    for constr in constrs:
-        lp_prob_i = iadd(lp_prob_i, constr)
-
-    return lp_prob_i
+    return reduce(iadd, constrs, lp_prob)
 
 
 def head(x: Sequence) -> Any:
     return x[0]
+
+
+def get_groupings(x_ij: lp.LpProblem, dd: DefaultDict) -> DefaultDict:
+    def group_up(group: str, student: str, dd: DefaultDict) -> DefaultDict:
+        is_assigned = lp.value(x_ij[(group, student)])
+        if not is_assigned:
+            return assoc_d(dd, group, iadd(dd[group], []))
+        return assoc_d(dd, group, iadd(dd[group], [student]))
+
+    return reduce(lambda d, group: group_up(*group, d), x_ij, dd)
 
 
 if __name__ == '__main__':
@@ -174,14 +186,7 @@ if __name__ == '__main__':
     print(lp.LpStatus[model.status])
     print(f'Optimal value: {lp.value(model.objective)}')
 
-    groups = defaultdict(list)
-
-    for group, student in X_ij:
-        assign_status = lp.value(X_ij[(group, student)])
-        if assign_status == 0:
-            continue
-        groups[group].append(student)
-
-    group_df = pd.DataFrame(groups)
+    groups_dict: DefaultDict = get_groupings(X_ij, defaultdict(list))
+    group_df: pd.DataFrame = pd.DataFrame(groups_dict)
 
     print(group_df)

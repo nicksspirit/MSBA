@@ -3,10 +3,11 @@
 ```python
 import pandas as pd
 import pulp as lp
-from typing import Sequence, Any
+from typing import Sequence, Any, DefaultDict
 from operator import iadd
 from collections import defaultdict
-from functools import reduce
+from functools import reduce, partial
+from cytoolz import assoc
 ```
 
 This is the logic I followed:
@@ -18,7 +19,7 @@ We have data on the following traits of the students:
     2. Programming experience
     3. Comfort with public speaking
     
-Academic background and programming experience carries a weight of 40% while Comfort with public speaking carries a wieght of 20%
+Academic background and programming experience carries a weight of 30% while Comfort with public speaking carries a wieght of 40%
 
 __Variables__
 
@@ -52,6 +53,10 @@ def add_constraint(lp_prob: lp.LpProblem, constrs: Sequence[lp.LpConstraint]) ->
 
 def head(x: Sequence) -> Any:
     return x[0]
+
+#  Create a partially applied function
+#  for creating a new defaultdict which uses List as its factory
+assoc_d = partial(assoc, factory=lambda: defaultdict(list))
 ```
 
 Using pandas we will read a csv having containing all the information regarding students.
@@ -988,20 +993,24 @@ lp.value(model.objective)
 
 
 
+Lets define a function that will add students who have been assigned into their respective group (in a functional way)
+
 
 ```python
-groups_dict = defaultdict(list)
-
-for group, student in X_ij:
-    assign_status = lp.value(X_ij[(group, student)])
-    if assign_status == 0:
-        continue
-    groups_dict[group].append(student)
+def get_groupings(X_ij: lp.LpProblem, dd: DefaultDict):
+    def group_up(group: str, student: str, dd: DefaultDict):
+        is_assigned = lp.value(X_ij[(group, student)])
+        if not is_assigned:
+            return assoc_d(dd, group, iadd(dd[group], []))
+        return assoc_d(dd, group, iadd(dd[group], [student]))
+    
+    return reduce(lambda d, group: group_up(*group, d), X_ij, dd)
 ```
 
 
 ```python
-group_df = pd.DataFrame(groups_dict)
+groups_dict: DefaultDict = get_groupings(X_ij, defaultdict(list))
+group_df: pd.DataFrame = pd.DataFrame(groups_dict)
 ```
 
 ### The group assignment is as follows
