@@ -141,7 +141,7 @@ $(document).ready(function () {
 </ol>
 <p>These penalty weights yield the following single linear programming model that incorporates all the goals.</p>
 <p>Using the helper function ,<code>lp_do</code>, I can output the results from methods provided by <code>lpSolveAPI</code> in a nicer format.</p>
-<pre class="r"><code>lp_do &lt;- function(fn, value, dv_labels = c(&quot;&quot;), constr_lables = c(&quot;&quot;)) {
+<pre class="r"><code>lp_do &lt;- function(fn, value, dv_labels = c(&quot;&quot;), constr_labels = c(&quot;&quot;)) {
     fn_name &lt;- sprintf(&quot;%s&quot;, as.character(substitute(fn)))
     switch(fn_name,
            &quot;solve&quot; = {
@@ -177,11 +177,11 @@ $(document).ready(function () {
            },
            &quot;get.constraints&quot; = {
                    dv &lt;- fn(value)
-                   if (length(constr_lables) != length(dv)) {
+                   if (length(constr_labels) != length(dv)) {
                        return(dv)
                    }
                    else {
-                       fmted_lables &lt;- lapply(constr_lables, function (x) {return(sprintf(&quot;%s -&gt;&quot;, x))})
+                       fmted_lables &lt;- lapply(constr_labels, function (x) {return(sprintf(&quot;%s -&gt;&quot;, x))})
                        dv_df &lt;-  data.frame(
                            Constraints = unlist(fmted_lables),
                            Answers = dv
@@ -229,7 +229,7 @@ y3n &gt;= 0;</code></pre>
 </div>
 <pre class="r"><code>lp_do(get.objective, gp_prob)</code></pre>
 <pre><code>## [1] &quot;Z min = 43.75&quot;</code></pre>
-<pre class="r"><code>lp_do(get.constraints, gp_prob, constr_lables = c(
+<pre class="r"><code>lp_do(get.constraints, gp_prob, constr_labels = c(
   &quot;12 x1 + 9 x2 + 15 x3 - y1p + y1n&quot;,
   &quot;5 x1 + 3 x2 + 4 x3 - y2p + y2n&quot;,
   &quot;5 x1 + 7 x2 + 8 x3 - y3p +  y3n&quot;

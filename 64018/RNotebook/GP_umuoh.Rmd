@@ -14,7 +14,7 @@ Solve the following Goal Programming problem
 
 For the Dewright Co. preemptive goal programming problem summarized in Table 2.
 
-![Table 2](/Users/nickmuoh/Desktop/table_2.png)
+![Table 2](./data/table_2.png)
 
 Note that
 
@@ -26,7 +26,7 @@ These penalty weights yield the following single linear programming model that i
 Using the helper function ,`lp_do`, I can output the results from methods provided by `lpSolveAPI` in a nicer format.
 
 ```{r}
-lp_do <- function(fn, value, dv_labels = c(""), constr_lables = c("")) {
+lp_do <- function(fn, value, dv_labels = c(""), constr_labels = c("")) {
     fn_name <- sprintf("%s", as.character(substitute(fn)))
     switch(fn_name,
            "solve" = {
@@ -62,11 +62,11 @@ lp_do <- function(fn, value, dv_labels = c(""), constr_lables = c("")) {
            },
            "get.constraints" = {
                    dv <- fn(value)
-                   if (length(constr_lables) != length(dv)) {
+                   if (length(constr_labels) != length(dv)) {
                        return(dv)
                    }
                    else {
-                       fmted_lables <- lapply(constr_lables, function (x) {return(sprintf("%s ->", x))})
+                       fmted_lables <- lapply(constr_labels, function (x) {return(sprintf("%s ->", x))})
                        dv_df <-  data.frame(
                            Constraints = unlist(fmted_lables),
                            Answers = dv
@@ -123,7 +123,7 @@ lp_do(get.objective, gp_prob)
 ```
 
 ```{r}
-lp_do(get.constraints, gp_prob, constr_lables = c(
+lp_do(get.constraints, gp_prob, constr_labels = c(
   "12 x1 + 9 x2 + 15 x3 - y1p + y1n",
   "5 x1 + 3 x2 + 4 x3 - y2p + y2n",
   "5 x1 + 7 x2 + 8 x3 - y3p +  y3n"
