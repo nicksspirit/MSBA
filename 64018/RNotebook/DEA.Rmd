@@ -1,0 +1,125 @@
+---
+title: "Hope Valley Health Care Association"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(Benchmarking)
+```
+
+The Hope Valley Health Care Association owns and operates six nursing homes in adjoining states. An evaluation of their efficiency has been undertaken using two inputs and two outputs. The inputs are staffing labor (measured in average hours per day) and the cost of supplies (in thousands of dollars per day). The outputs are the number of patient-days reimbursed by third-party sources and the number of patient-days reimbursed privately. A summary of performance data is shown in the table below.
+
+Do the following:
+
+
+Determine the Peers and Lambdas under each of the above assumptions
+Summarize your results in a tabular format.
+If possible, plot the frontier function for each part (similar to Page 20 in our notes)
+All results should be in your github account and displayed in an html/pdf file.
+
+```{r}
+staff_hours <- c(150,400,320,520,350,320)
+supplies_day <- c(0.2, 0.7, 1.2, 2.0, 1.2, 0.7)
+
+reimbursed_patients_days <- c(14000,14000,42000,28000,19000, 14000)
+priv_paied_patient_days <- c(3500,21000,10500,42000,25000,15000)
+
+input <- matrix(c(staff_hours, supplies_day),ncol = 2)
+output <- matrix(c(reimbursed_patients_days, priv_paied_patient_days), ncol= 2)
+
+colnames(input) <- c("Staff Hours Per Day", "Supplies Per Day")
+colnames(output) <- c("Reimbursed Patient-Days", "Privately Paid Patient-Days")
+```
+
+1. Perform DEA analysis by under all DEA assumptions of FDH, CRS, VRS, IRS, DRS, and FRH.
+2. Determine the Peers and Lambdas under each of the above assumptions
+3. Summarize your results in a tabular format.
+4. If possible, plot the frontier function for each part 
+
+## CRS
+```{r}
+crs <- dea(input, output, RTS = "crs")
+crs
+peers(crs)
+lambda(crs)
+```
+
+
+```{r}
+dea.plot(input, output, RTS = "crs")
+```
+
+## FDH
+
+```{r}
+fdh <- dea(input, output, RTS = "fdh") 
+fdh
+
+peers(fdh)
+lambda(fdh)
+```
+
+```{r}
+dea.plot(input, output, RTS = "fdh")
+```
+
+## VRS
+
+```{r}
+vrs <- dea(input, output,RTS = "vrs")
+vrs
+
+peers(vrs)
+lambda(vrs)
+```
+
+```{r}
+dea.plot(input, output, RTS = "vrs")
+```
+
+#DRS
+
+```{r}
+drs <- dea(input, output, RTS = "drs")
+drs
+
+peers(drs)
+lambda(drs)
+```
+
+```{r}
+dea.plot(input, output, RTS = "drs")
+```
+
+
+#IRS
+
+```{r}
+irs <- dea(input, output, RTS = "irs")
+irs
+
+peers(irs)
+lambda(irs)
+```
+
+
+```{r}
+dea.plot(input, output, RTS = "irs")
+```
+
+#FRH or FDH+
+
+```{r}
+fdh <- dea(input, output, RTS = "fdh+")
+fdh
+
+peers(fdh)
+lambda(fdh)
+```
+
+```{r}
+dea.plot(input, output, RTS = "fdh+")
+```
+
