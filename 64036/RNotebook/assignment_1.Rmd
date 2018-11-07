@@ -1,7 +1,8 @@
 ---
 title: "Assignment 1"
 output:
-  word_document: default
+  html_document:
+    df_print: paged
   html_notebook: default
 ---
 
@@ -69,6 +70,7 @@ z_score_per_diem <- qnorm(probabilty_per_diem) %>% round(2)
 print(sprintf("Z Score = %.2f", z_score_per_diem))
 
 average_per_diem <- multiply_by(z_score_per_diem, sd_per_diem) %>%
+  multiply_by(-1) %>%
   add(449) %>%
   round(digits = 2)
 
@@ -167,9 +169,9 @@ unique_trans_per_country <- or_df %>%
   distinct() %>%
   group_by(Country) %>%
   count(sort = T) %>%
-  transform(percentage = calc_percentage(n, sum(n), fmt_nice = T)) %>%
+  transform(percentage = calc_percentage(n, sum(n), fmt_nice = F)) %>%
   set_colnames(c("Country", "#No Transactions", "Percentage")) %>%
-  head
+  head()
 ```
 
   >Show only countries accounting for more than 1% of the total transactions.
@@ -222,11 +224,13 @@ or_df_1$Invoice_Day_Week= weekdays(or_df_1$Invoice_Date)
 or_df_1$Invoice_Hour = as.numeric(format(date_obj, "%H"))
 or_df_1$Invoice_Month = as.numeric(format(date_obj, "%m"))
 
-or_df_1
+head(or_df_1)
 ```
+
+  >a. Show the percentage of transactions (by numbers) by days of the week.
   
-  >a.Show the percentage of transactions (by numbers) by days of the week.
-  
+  __Ans:__
+
 ```{r}
 or_df_1 %>%
   select(InvoiceNo, Invoice_Day_Week) %>%
@@ -235,27 +239,136 @@ or_df_1 %>%
   count(sort = T) %>%
   transform(Percentage = calc_percentage(n, sum(n), fmt_nice = T))
 ```
-  
+
   >b. Show the percentage of transactions (by transaction volume) by days of the week.
   
+  __Ans:__
+
 ```{r}
 or_df_1 %>%
-  select(InvoiceNo, Invoice_Day_Week) %>%
+  select(TransactionValue, Invoice_Day_Week) %>%
   group_by(Invoice_Day_Week) %>%
-  count(sort = T) %>%
-  transform(Percentage = calc_percentage(n, sum(n), fmt_nice = T))
+  summarise(TransactionValueSum = sum(TransactionValue)) %>%
+  transform(Percentage = calc_percentage(TransactionValueSum, sum(TransactionValueSum), fmt_nice = T))
 ```
 
   >c. Show the percentage of transactions (by transaction volume) by month of the year.
+  
+  __Ans:__
 
 ```{r}
 or_df_1 %>%
-  select(InvoiceNo, Invoice_Month) %>%
+  select(TransactionValue, Invoice_Month) %>%
   group_by(Invoice_Month) %>%
-  count(sort = T) %>%
-  transform(Percentage = calc_percentage(n, sum(n), fmt_nice = T))
+  summarise(TransactionValueSum = sum(TransactionValue)) %>%
+  transform(Percentage = calc_percentage(TransactionValueSum, sum(TransactionValueSum), fmt_nice = T)) %>%
+  head()
 ```
 
+>d. What was the date with the highest number of transactions from Australia?
+  
+  __Ans:__
+
+  >As can be seen below, the dates with the highest number of transactions in Australia is __2011-02-07__ and
+  __2011-09-28__.
+
+```{r}
+or_df_1 %>%
+  select(Country, Invoice_Date, InvoiceNo) %>%
+  filter(Country == "Australia") %>%
+  distinct() %>%
+  group_by(Invoice_Date) %>%
+  count(sort = T) %>%
+  subset(n == max(n))
+```
+> e. The company needs to shut down the website for two consecutive hours for maintenance. What would be the hour of the day to start this so that the distribution is at minimum for the customers? The responsible IT team is available from 7:00 to 20:00 every day
+
+__Ans:__
+
+  >In order to solve the problem we need to select the columns that are relevant to us and then sum the total number of transaction (including cancelled transactions) per invoice hour but only focusing on hours between 7:00 and 20:00.
+
+```{r}
+no_trans_per_hour <- or_df_1 %>%
+  select(CustomerID, Invoice_Hour, InvoiceNo) %>%
+  distinct() %>%
+  group_by(Invoice_Hour) %>%
+  count(sort = F) %>%
+  summarise(total_trans = sum(n)) %>%
+  filter(Invoice_Hour >= 7 & Invoice_Hour <= 20)
+
+no_trans_per_hour
+```
+
+  >Below we define helper functions to assist in solving the problem
+
+```{r}
+# Given the hours as a vector you get a vector of total transactions belonging
+# to each hour
+get.total_trans <- function(target_hrs, trans_per_hrs) {
+  return(trans_per_hrs %>%
+           subset(Invoice_Hour %in% target_hrs) %>%
+           use_series("total_trans")
+         )
+}
+
+# Given a dataframe with permuations of hours, it will only return the columns in which 
+# the hour combination are consecutive meaning hour 1 -> 2 -> 3
+only_consecutive_hrs <- function (hrs) {
+  return(
+    hrs %>%
+      apply(MARGIN = 2, FUN = function(v) {
+        diff_hrs <- sum(diff(v))
+        
+        if (diff_hrs == 2) {
+          return(v)
+        }
+        
+        return(NA)
+      })
+  )
+}
+```
+
+
+  >Generate all possible 2 hour permutations but then only select those that are consecutive
+
+```{r}
+hr_permuations <- combn(no_trans_per_hour$Invoice_Hour, 3) %>%
+  as.data.frame() %>%
+  only_consecutive_hrs() %>%
+  as.data.frame() %>%
+  select_if(~ !any(is.na(.))) 
+
+hr_permuations
+```
+
+  >Now that we have all the possible 2 consecutive hour permutations, we add up all the total no transactions
+  for each hour in order to get the total number of transactions for each 2 consecutive hour we have
+  generated.
+
+```{r}
+all_2hr_permuations <- hr_permuations %>% 
+  apply(MARGIN = 2, FUN = function(v) {
+    return(get.total_trans(v, no_trans_per_hour) %>%
+      sum() %>%
+      c(v, .)
+    )
+  }) %>%
+  t() %>%
+  as.data.frame()
+
+colnames(all_2hr_permuations) <- c("Hour 1", "Hour 2", "Hour 3", "Total_Sum_Transactions")
+
+all_2hr_permuations
+```
+
+  >Finally we can figure out the 2 hours that company can use for maintainance without affecting the customers
+  too badly. As you can see below, the hours between 18 and 20 (6pm and 8pm) are the best for the company's 2
+  hour maintainance.
+
+```{r}
+all_2hr_permuations[which.min(all_2hr_permuations$Total_Sum_Transactions),]
+```
 
 
 >8.
@@ -277,23 +390,28 @@ or_df_1 %>%
   __Ans:__
 
   >Below are the top 6 customers that have the highest number of transactions (sorted descendingly). It is
-  interesting to note that __the customer with no customerID has the highest number of transactions__
+  interesting to note that __the customer with customerID 14911 has the highest number of transactions__. We
+  filter out the cusomters with CutomerIDs equal to `NA`. We exclude them because there are not identifiable.
 
 ```{r}
 or_df_1 %>%
   select(CustomerID, Country, InvoiceNo) %>%
+  filter(!is.na(CustomerID)) %>%
   distinct() %>%
   group_by(CustomerID) %>%
   count(sort = T) %>%
   head()
 ```
 
-  >Below are the top 6 customers that have the highest total sum of transactions (sorted descendingly). It is interesting
-  to note that __the customer with no customerID has the highest total sum of transactions__
+  >Below are the top 6 customers that have the highest total sum of transactions (sorted descendingly). It is
+  interesting to note that __the customer with customerID 14646 has the highest total sum of transactions__.
+  We filter out the cusomters with CutomerIDs equal to `NA`. We exclude them because there are not
+  identifiable .
 
 ```{r}
 or_df_1 %>%
   select(CustomerID, Country, InvoiceNo, TransactionValue) %>%
+  filter(!is.na(CustomerID)) %>%
   distinct() %>%
   group_by(CustomerID) %>%
   summarise_at(
@@ -331,6 +449,27 @@ or_df_1 %>%
   filter(is.na(CustomerID)) %>%
   count(sort = T)
 ```
+
+>12. On average, how often do the costumers comeback to the website for their next shopping? (i.e. what is the
+average number of days between consecutive shopping).
+
+__Ans:__
+
+```{r}
+customer_days <- or_df_1 %>%
+  select(CustomerID, Invoice_Date) %>%
+  distinct() %>%
+  arrange(Invoice_Date) %>%
+  group_by(CustomerID) %>%
+  mutate(no_days = sum(diff(Invoice_Date))) %>%
+  arrange(no_days)  %>%
+  filter(no_days > 0)
+
+customer_days
+
+sprintf("The average number of days between consectuive shopping dates for customers is %.2f days", mean(customer_days$no_days)) 
+```
+
 >13.
   In the retail sector, it is very important to understand the return rate of the goods purchased by customers. In this
   example, we can define this quantity, simply, as the ratio of the number of transactions cancelled (regardless of the
@@ -387,9 +526,11 @@ or_df_1 %>%
 ```{r}
 or_df_1 %>%
   select(CustomerID) %>%
+  filter(!is.na(CustomerID)) %>%
   distinct() %>%
   count() %>%
   use_series("n") %>%
   sprintf("There are %d unique customers represented in the dataset.", .)
 ```
+
 

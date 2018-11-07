@@ -186,11 +186,12 @@ z_score_per_diem &lt;- qnorm(probabilty_per_diem) %&gt;% round(2)
 print(sprintf(&quot;Z Score = %.2f&quot;, z_score_per_diem))</code></pre>
 <pre><code>## [1] &quot;Z Score = 1.11&quot;</code></pre>
 <pre class="r"><code>average_per_diem &lt;- multiply_by(z_score_per_diem, sd_per_diem) %&gt;%
+  multiply_by(-1) %&gt;%
   add(449) %&gt;%
   round(digits = 2)
 
 print(sprintf(&quot;Average per diem cost = %.2f &quot;, average_per_diem))</code></pre>
-<pre><code>## [1] &quot;Average per diem cost = 488.96 &quot;</code></pre>
+<pre><code>## [1] &quot;Average per diem cost = 409.04 &quot;</code></pre>
 <blockquote>
 <ol start="3" style="list-style-type: decimal">
 <li>Chris is interested in understanding the correlation between temperature in Kent, OH and Los Angeles, CA. He has got the following data for September 2017 from Alpha Knowledgebase.</li>
@@ -240,9 +241,8 @@ sprintf(&quot;Pearson Correlation Coefficient = %f&quot;, pearson_coeff)</code><
 <p>The ‘Online Retail’ dataset is a transnational data set which contains all the transactions occurring between 01 Dec 2010 and 09 Dec 2011 for a UK-based and registered non-store online retail. The company mainly sells unique all-occasion gifts. Many customers of the company are wholesalers.</p>
 </blockquote>
 <pre class="r"><code>or_df &lt;- read.csv(&quot;./data/online_retail.csv&quot;, colClasses=c(CustomerID=&quot;character&quot;), na.strings=c(&quot;&quot;,&quot;NA&quot;))
-total_trans &lt;- nrow(or_df)
 
-sprintf(&quot;Total number of transaction = %g&quot;, total_trans)</code></pre>
+sprintf(&quot;Total number of transaction = %g&quot;, nrow(or_df))</code></pre>
 <pre><code>## [1] &quot;Total number of transaction = 541909&quot;</code></pre>
 <p>Let’s get a <em>feel</em> for the data and call the <code>head</code> function on our dataframe</p>
 <pre class="r"><code>head(or_df)</code></pre>
@@ -262,7 +262,7 @@ sprintf(&quot;Total number of transaction = %g&quot;, total_trans)</code></pre>
     return(n %&gt;%
              divide_by(total) %&gt;%
              multiply_by(100) %&gt;%
-             lapply(function(x) {
+             sapply(function(x) {
                return(sprintf(&quot;%.2f%%&quot;, x))
                })
            )
@@ -270,26 +270,21 @@ sprintf(&quot;Total number of transaction = %g&quot;, total_trans)</code></pre>
   return (n %&gt;% divide_by(total) %&gt;% multiply_by(100) %&gt;% round(digits))
 }
 
-country_per_trans &lt;- or_df %&gt;%
+unique_trans_per_country &lt;- or_df %&gt;%
+  select(Country, InvoiceNo) %&gt;%
+  distinct() %&gt;%
   group_by(Country) %&gt;%
-  count %&gt;%
-  transform(percentage = calc_percentage(extract(., &quot;n&quot;), total_trans, fmt_nice = F)) %&gt;%
-  set_colnames(c(&quot;Country&quot;, &quot;#No Transactions&quot;, &quot;Percentage&quot;))
-
-
-head(country_per_trans)</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Country"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["#No Transactions"],"name":[2],"type":["int"],"align":["right"]},{"label":["Percentage"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"Australia","2":"1259","3":"0.232","_rn_":"1"},{"1":"Austria","2":"401","3":"0.074","_rn_":"2"},{"1":"Bahrain","2":"19","3":"0.004","_rn_":"3"},{"1":"Belgium","2":"2069","3":"0.382","_rn_":"4"},{"1":"Brazil","2":"32","3":"0.006","_rn_":"5"},{"1":"Canada","2":"151","3":"0.028","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+  count(sort = T) %&gt;%
+  transform(percentage = calc_percentage(n, sum(n), fmt_nice = F)) %&gt;%
+  set_colnames(c(&quot;Country&quot;, &quot;#No Transactions&quot;, &quot;Percentage&quot;)) %&gt;%
+  head()</code></pre>
 <blockquote>
 <p>Show only countries accounting for more than 1% of the total transactions.</p>
 </blockquote>
-<pre class="r"><code>country_per_trans %&gt;% filter(Percentage &gt; 1.00)</code></pre>
+<pre class="r"><code>unique_trans_per_country %&gt;% filter(Percentage &gt; 1.00)</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Country"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["#No Transactions"],"name":[2],"type":["int"],"align":["right"]},{"label":["Percentage"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"EIRE","2":"8196","3":"1.512"},{"1":"France","2":"8557","3":"1.579"},{"1":"Germany","2":"9495","3":"1.752"},{"1":"United Kingdom","2":"495478","3":"91.432"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Country"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["#No Transactions"],"name":[2],"type":["int"],"align":["right"]},{"label":["Percentage"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"United Kingdom","2":"23494","3":"90.710"},{"1":"Germany","2":"603","3":"2.328"},{"1":"France","2":"461","3":"1.780"},{"1":"EIRE","2":"360","3":"1.390"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <blockquote>
@@ -335,6 +330,188 @@ head(country_transvals)</code></pre>
   </script>
 </div>
 <blockquote>
+<p>7.First let’s convert ‘InvoiceDate’ into a POSIXlt object:</p>
+</blockquote>
+<pre class="r"><code>date_obj &lt;- strptime(or_df_1$InvoiceDate,format='%m/%d/%Y %H:%M',tz='GMT')
+or_df_1$Invoice_Date &lt;-as.Date(date_obj)
+or_df_1$Invoice_Day_Week= weekdays(or_df_1$Invoice_Date)
+or_df_1$Invoice_Hour = as.numeric(format(date_obj, &quot;%H&quot;))
+or_df_1$Invoice_Month = as.numeric(format(date_obj, &quot;%m&quot;))
+
+head(or_df_1)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["InvoiceNo"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["StockCode"],"name":[2],"type":["fctr"],"align":["left"]},{"label":["Description"],"name":[3],"type":["fctr"],"align":["left"]},{"label":["Quantity"],"name":[4],"type":["int"],"align":["right"]},{"label":["InvoiceDate"],"name":[5],"type":["fctr"],"align":["left"]},{"label":["UnitPrice"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["CustomerID"],"name":[7],"type":["chr"],"align":["left"]},{"label":["Country"],"name":[8],"type":["fctr"],"align":["left"]},{"label":["TransactionValue"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Invoice_Date"],"name":[10],"type":["date"],"align":["right"]},{"label":["Invoice_Day_Week"],"name":[11],"type":["chr"],"align":["left"]},{"label":["Invoice_Hour"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Invoice_Month"],"name":[13],"type":["dbl"],"align":["right"]}],"data":[{"1":"536365","2":"85123A","3":"WHITE HANGING HEART T-LIGHT HOLDER","4":"6","5":"12/1/2010 8:26","6":"2.55","7":"17850","8":"United Kingdom","9":"15.30","10":"2010-12-01","11":"Wednesday","12":"8","13":"12","_rn_":"1"},{"1":"536365","2":"71053","3":"WHITE METAL LANTERN","4":"6","5":"12/1/2010 8:26","6":"3.39","7":"17850","8":"United Kingdom","9":"20.34","10":"2010-12-01","11":"Wednesday","12":"8","13":"12","_rn_":"2"},{"1":"536365","2":"84406B","3":"CREAM CUPID HEARTS COAT HANGER","4":"8","5":"12/1/2010 8:26","6":"2.75","7":"17850","8":"United Kingdom","9":"22.00","10":"2010-12-01","11":"Wednesday","12":"8","13":"12","_rn_":"3"},{"1":"536365","2":"84029G","3":"KNITTED UNION FLAG HOT WATER BOTTLE","4":"6","5":"12/1/2010 8:26","6":"3.39","7":"17850","8":"United Kingdom","9":"20.34","10":"2010-12-01","11":"Wednesday","12":"8","13":"12","_rn_":"4"},{"1":"536365","2":"84029E","3":"RED WOOLLY HOTTIE WHITE HEART.","4":"6","5":"12/1/2010 8:26","6":"3.39","7":"17850","8":"United Kingdom","9":"20.34","10":"2010-12-01","11":"Wednesday","12":"8","13":"12","_rn_":"5"},{"1":"536365","2":"22752","3":"SET 7 BABUSHKA NESTING BOXES","4":"2","5":"12/1/2010 8:26","6":"7.65","7":"17850","8":"United Kingdom","9":"15.30","10":"2010-12-01","11":"Wednesday","12":"8","13":"12","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<ol style="list-style-type: lower-alpha">
+<li>Show the percentage of transactions (by numbers) by days of the week.</li>
+</ol>
+</blockquote>
+<p><strong>Ans:</strong></p>
+<pre class="r"><code>or_df_1 %&gt;%
+  select(InvoiceNo, Invoice_Day_Week) %&gt;%
+  distinct() %&gt;%
+  group_by(Invoice_Day_Week) %&gt;%
+  count(sort = T) %&gt;%
+  transform(Percentage = calc_percentage(n, sum(n), fmt_nice = T))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Invoice_Day_Week"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["Percentage"],"name":[3],"type":["fctr"],"align":["left"]}],"data":[{"1":"Thursday","2":"5660","3":"21.85%"},{"1":"Wednesday","2":"4815","3":"18.59%"},{"1":"Tuesday","2":"4722","3":"18.23%"},{"1":"Friday","2":"4184","3":"16.15%"},{"1":"Monday","2":"4138","3":"15.98%"},{"1":"Sunday","2":"2381","3":"9.19%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Show the percentage of transactions (by transaction volume) by days of the week.</li>
+</ol>
+</blockquote>
+<p><strong>Ans:</strong></p>
+<pre class="r"><code>or_df_1 %&gt;%
+  select(TransactionValue, Invoice_Day_Week) %&gt;%
+  group_by(Invoice_Day_Week) %&gt;%
+  summarise(TransactionValueSum = sum(TransactionValue)) %&gt;%
+  transform(Percentage = calc_percentage(TransactionValueSum, sum(TransactionValueSum), fmt_nice = T))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Invoice_Day_Week"],"name":[1],"type":["chr"],"align":["left"]},{"label":["TransactionValueSum"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Percentage"],"name":[3],"type":["fctr"],"align":["left"]}],"data":[{"1":"Friday","2":"1540610.8","3":"15.80%"},{"1":"Monday","2":"1588609.4","3":"16.30%"},{"1":"Sunday","2":"805678.9","3":"8.27%"},{"1":"Thursday","2":"2112519.0","3":"21.67%"},{"1":"Tuesday","2":"1966182.8","3":"20.17%"},{"1":"Wednesday","2":"1734147.0","3":"17.79%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Show the percentage of transactions (by transaction volume) by month of the year.</li>
+</ol>
+</blockquote>
+<p><strong>Ans:</strong></p>
+<pre class="r"><code>or_df_1 %&gt;%
+  select(TransactionValue, Invoice_Month) %&gt;%
+  group_by(Invoice_Month) %&gt;%
+  summarise(TransactionValueSum = sum(TransactionValue)) %&gt;%
+  transform(Percentage = calc_percentage(TransactionValueSum, sum(TransactionValueSum), fmt_nice = T)) %&gt;%
+  head()</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Invoice_Month"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["TransactionValueSum"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Percentage"],"name":[3],"type":["fctr"],"align":["left"]}],"data":[{"1":"1","2":"560000.3","3":"5.74%","_rn_":"1"},{"1":"2","2":"498062.6","3":"5.11%","_rn_":"2"},{"1":"3","2":"683267.1","3":"7.01%","_rn_":"3"},{"1":"4","2":"493207.1","3":"5.06%","_rn_":"4"},{"1":"5","2":"723333.5","3":"7.42%","_rn_":"5"},{"1":"6","2":"691123.1","3":"7.09%","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<ol start="4" style="list-style-type: lower-alpha">
+<li>What was the date with the highest number of transactions from Australia?</li>
+</ol>
+</blockquote>
+<p><strong>Ans:</strong></p>
+<blockquote>
+<p>As can be seen below, the dates with the highest number of transactions in Australia is <strong>2011-02-07</strong> and <strong>2011-09-28</strong>.</p>
+</blockquote>
+<pre class="r"><code>or_df_1 %&gt;%
+  select(Country, Invoice_Date, InvoiceNo) %&gt;%
+  filter(Country == &quot;Australia&quot;) %&gt;%
+  distinct() %&gt;%
+  group_by(Invoice_Date) %&gt;%
+  count(sort = T) %&gt;%
+  subset(n == max(n))</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Invoice_Date"],"name":[1],"type":["date"],"align":["right"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"2011-02-07","2":"4"},{"1":"2011-09-28","2":"4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<ol start="5" style="list-style-type: lower-alpha">
+<li>The company needs to shut down the website for two consecutive hours for maintenance. What would be the hour of the day to start this so that the distribution is at minimum for the customers? The responsible IT team is available from 7:00 to 20:00 every day</li>
+</ol>
+</blockquote>
+<p><strong>Ans:</strong></p>
+<blockquote>
+<p>In order to solve the problem we need to select the columns that are relevant to us and then sum the total number of transaction (including cancelled transactions) per invoice hour but only focusing on hours between 7:00 and 20:00.</p>
+</blockquote>
+<pre class="r"><code>no_trans_per_hour &lt;- or_df_1 %&gt;%
+  select(CustomerID, Invoice_Hour, InvoiceNo) %&gt;%
+  distinct() %&gt;%
+  group_by(Invoice_Hour) %&gt;%
+  count(sort = F) %&gt;%
+  summarise(total_trans = sum(n)) %&gt;%
+  filter(Invoice_Hour &gt;= 7 &amp; Invoice_Hour &lt;= 20)
+
+no_trans_per_hour</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Invoice_Hour"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["total_trans"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"7","2":"31"},{"1":"8","2":"624"},{"1":"9","2":"1824"},{"1":"10","2":"2961"},{"1":"11","2":"3165"},{"1":"12","2":"3962"},{"1":"13","2":"3369"},{"1":"14","2":"3137"},{"1":"15","2":"3069"},{"1":"16","2":"1952"},{"1":"17","2":"1205"},{"1":"18","2":"333"},{"1":"19","2":"219"},{"1":"20","2":"28"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<p>Below we define helper functions to assist in solving the problem</p>
+</blockquote>
+<pre class="r"><code># Given the hours as a vector you get a vector of total transactions belonging
+# to each hour
+get.total_trans &lt;- function(target_hrs, trans_per_hrs) {
+  return(trans_per_hrs %&gt;%
+           subset(Invoice_Hour %in% target_hrs) %&gt;%
+           use_series(&quot;total_trans&quot;)
+         )
+}
+
+# Given a dataframe with permuations of hours, it will only return the columns in which 
+# the hour combination are consecutive meaning hour 1 -&gt; 2 -&gt; 3
+only_consecutive_hrs &lt;- function (hrs) {
+  return(
+    hrs %&gt;%
+      apply(MARGIN = 2, FUN = function(v) {
+        diff_hrs &lt;- sum(diff(v))
+        
+        if (diff_hrs == 2) {
+          return(v)
+        }
+        
+        return(NA)
+      })
+  )
+}</code></pre>
+<blockquote>
+<p>Generate all possible 2 hour permutations but then only select those that are consecutive</p>
+</blockquote>
+<pre class="r"><code>hr_permuations &lt;- combn(no_trans_per_hour$Invoice_Hour, 3) %&gt;%
+  as.data.frame() %&gt;%
+  only_consecutive_hrs() %&gt;%
+  as.data.frame() %&gt;%
+  select_if(~ !any(is.na(.))) 
+
+hr_permuations</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["V1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["V79"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["V145"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["V200"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["V245"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["V281"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["V309"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["V330"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["V345"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["V355"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["V361"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["V364"],"name":[12],"type":["dbl"],"align":["right"]}],"data":[{"1":"7","2":"8","3":"9","4":"10","5":"11","6":"12","7":"13","8":"14","9":"15","10":"16","11":"17","12":"18"},{"1":"8","2":"9","3":"10","4":"11","5":"12","6":"13","7":"14","8":"15","9":"16","10":"17","11":"18","12":"19"},{"1":"9","2":"10","3":"11","4":"12","5":"13","6":"14","7":"15","8":"16","9":"17","10":"18","11":"19","12":"20"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<p>Now that we have all the possible 2 consecutive hour permutations, we add up all the total no transactions for each hour in order to get the total number of transactions for each 2 consecutive hour we have generated.</p>
+</blockquote>
+<pre class="r"><code>all_2hr_permuations &lt;- hr_permuations %&gt;% 
+  apply(MARGIN = 2, FUN = function(v) {
+    return(get.total_trans(v, no_trans_per_hour) %&gt;%
+      sum() %&gt;%
+      c(v, .)
+    )
+  }) %&gt;%
+  t() %&gt;%
+  as.data.frame()
+
+colnames(all_2hr_permuations) &lt;- c(&quot;Hour 1&quot;, &quot;Hour 2&quot;, &quot;Hour 3&quot;, &quot;Total_Sum_Transactions&quot;)
+
+all_2hr_permuations</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Hour 1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Hour 2"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Hour 3"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Total_Sum_Transactions"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"7","2":"8","3":"9","4":"2479","_rn_":"V1"},{"1":"8","2":"9","3":"10","4":"5409","_rn_":"V79"},{"1":"9","2":"10","3":"11","4":"7950","_rn_":"V145"},{"1":"10","2":"11","3":"12","4":"10088","_rn_":"V200"},{"1":"11","2":"12","3":"13","4":"10496","_rn_":"V245"},{"1":"12","2":"13","3":"14","4":"10468","_rn_":"V281"},{"1":"13","2":"14","3":"15","4":"9575","_rn_":"V309"},{"1":"14","2":"15","3":"16","4":"8158","_rn_":"V330"},{"1":"15","2":"16","3":"17","4":"6226","_rn_":"V345"},{"1":"16","2":"17","3":"18","4":"3490","_rn_":"V355"},{"1":"17","2":"18","3":"19","4":"1757","_rn_":"V361"},{"1":"18","2":"19","3":"20","4":"580","_rn_":"V364"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
+<p>Finally we can figure out the 2 hours that company can use for maintainance without affecting the customers too badly. As you can see below, the hours between 18 and 20 (6pm and 8pm) are the best for the company’s 2 hour maintainance.</p>
+</blockquote>
+<pre class="r"><code>all_2hr_permuations[which.min(all_2hr_permuations$Total_Sum_Transactions),]</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Hour 1"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Hour 2"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Hour 3"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Total_Sum_Transactions"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"18","2":"19","3":"20","4":"580","_rn_":"V364"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<blockquote>
 <ol start="8" style="list-style-type: decimal">
 <li>Plot the histogram of transaction values from Germany. Use the hist() function to plot.</li>
 </ol>
@@ -353,31 +530,37 @@ head(country_transvals)</code></pre>
 </blockquote>
 <p><strong>Ans:</strong></p>
 <blockquote>
-<p>Below are the top 6 customers that have the highest number of transactions (sorted descendingly). It is interesting to note that <strong>the customer with no customerID has the highest number of transactions</strong></p>
+<p>Below are the top 6 customers that have the highest number of transactions (sorted descendingly). It is interesting to note that <strong>the customer with customerID 14911 has the highest number of transactions</strong>. We filter out the cusomters with CutomerIDs equal to <code>NA</code>. We exclude them because there are not identifiable.</p>
 </blockquote>
 <pre class="r"><code>or_df_1 %&gt;%
+  select(CustomerID, Country, InvoiceNo) %&gt;%
+  filter(!is.na(CustomerID)) %&gt;%
+  distinct() %&gt;%
   group_by(CustomerID) %&gt;%
   count(sort = T) %&gt;%
-  head</code></pre>
+  head()</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["CustomerID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"NA","2":"135080"},{"1":"17841","2":"7983"},{"1":"14911","2":"5903"},{"1":"14096","2":"5128"},{"1":"12748","2":"4642"},{"1":"14606","2":"2782"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["CustomerID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"14911","2":"248"},{"1":"12748","2":"224"},{"1":"17841","2":"169"},{"1":"14606","2":"128"},{"1":"13089","2":"118"},{"1":"15311","2":"118"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <blockquote>
-<p>Below are the top 6 customers that have the highest total sum of transactions (sorted descendingly). It is interesting to note that <strong>the customer with no customerID has the highest total sum of transactions</strong></p>
+<p>Below are the top 6 customers that have the highest total sum of transactions (sorted descendingly). It is interesting to note that <strong>the customer with customerID 14646 has the highest total sum of transactions</strong>. We filter out the cusomters with CutomerIDs equal to <code>NA</code>. We exclude them because there are not identifiable .</p>
 </blockquote>
 <pre class="r"><code>or_df_1 %&gt;%
+  select(CustomerID, Country, InvoiceNo, TransactionValue) %&gt;%
+  filter(!is.na(CustomerID)) %&gt;%
+  distinct() %&gt;%
   group_by(CustomerID) %&gt;%
   summarise_at(
     vars(TransactionValue),
     funs(sum(., na.rm = T))
   ) %&gt;%
   arrange(desc(TransactionValue)) %&gt;%
-  head</code></pre>
+  head()</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["CustomerID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["TransactionValue"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"NA","2":"1447682.1"},{"1":"14646","2":"279489.0"},{"1":"18102","2":"256438.5"},{"1":"17450","2":"187482.2"},{"1":"14911","2":"132572.6"},{"1":"12415","2":"123725.4"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["CustomerID"],"name":[1],"type":["chr"],"align":["left"]},{"label":["TransactionValue"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"14646","2":"197186.43"},{"1":"18102","2":"170150.21"},{"1":"17450","2":"161194.79"},{"1":"14911","2":"90800.34"},{"1":"14156","2":"87037.63"},{"1":"12415","2":"84701.19"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <blockquote>
@@ -390,12 +573,12 @@ head(country_transvals)</code></pre>
   is.na() %&gt;%
   colMeans() %&gt;%
   sapply(function(x) {
-    return(sprintf(&quot;%.5f%%&quot;, x))
+    return(sprintf(&quot;%.5f%%&quot;, x * 100))
   })</code></pre>
 <pre><code>##   InvoiceNo   StockCode Description    Quantity InvoiceDate   UnitPrice 
-##  &quot;0.00000%&quot;  &quot;0.00000%&quot;  &quot;0.00268%&quot;  &quot;0.00000%&quot;  &quot;0.00000%&quot;  &quot;0.00000%&quot; 
+##  &quot;0.00000%&quot;  &quot;0.00000%&quot;  &quot;0.26831%&quot;  &quot;0.00000%&quot;  &quot;0.00000%&quot;  &quot;0.00000%&quot; 
 ##  CustomerID     Country 
-##  &quot;0.24927%&quot;  &quot;0.00000%&quot;</code></pre>
+## &quot;24.92669%&quot;  &quot;0.00000%&quot;</code></pre>
 <blockquote>
 <ol start="11" style="list-style-type: decimal">
 <li>What are the number of transactions with missing CustomerID records by countries?</li>
@@ -403,14 +586,32 @@ head(country_transvals)</code></pre>
 </blockquote>
 <p><strong>Ans:</strong></p>
 <pre class="r"><code>or_df_1 %&gt;%
+  select(CustomerID, Country, InvoiceNo) %&gt;%
+  distinct() %&gt;%
   group_by(Country) %&gt;%
   filter(is.na(CustomerID)) %&gt;%
-  count( sort = T)</code></pre>
+  count(sort = T)</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Country"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"United Kingdom","2":"133600"},{"1":"EIRE","2":"711"},{"1":"Hong Kong","2":"288"},{"1":"Unspecified","2":"202"},{"1":"Switzerland","2":"125"},{"1":"France","2":"66"},{"1":"Israel","2":"47"},{"1":"Portugal","2":"39"},{"1":"Bahrain","2":"2"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["Country"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]}],"data":[{"1":"United Kingdom","2":"3637"},{"1":"EIRE","2":"41"},{"1":"Hong Kong","2":"15"},{"1":"Unspecified","2":"5"},{"1":"France","2":"3"},{"1":"Israel","2":"3"},{"1":"Switzerland","2":"3"},{"1":"Bahrain","2":"2"},{"1":"Portugal","2":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
+<blockquote>
+<ol start="12" style="list-style-type: decimal">
+<li>On average, how often do the costumers comeback to the website for their next shopping? (i.e. what is the average number of days between consecutive shopping).</li>
+</ol>
+</blockquote>
+<p><strong>Ans:</strong></p>
+<pre class="r"><code>customer_days &lt;- or_df_1 %&gt;%
+  select (CustomerID, Invoice_Date) %&gt;%
+  distinct() %&gt;%
+  arrange(Invoice_Date) %&gt;%
+  group_by(CustomerID) %&gt;%
+  mutate(no_days = sum(diff(Invoice_Date))) %&gt;%
+  arrange(no_days)
+
+sprintf(&quot;The average number of days between consectuive shopping dates for customers is %.2f days&quot;, mean(customer_days$no_days)) </code></pre>
+<pre><code>## [1] &quot;The average number of days between consectuive shopping dates for customers is 245.50 days&quot;</code></pre>
 <blockquote>
 <ol start="13" style="list-style-type: decimal">
 <li>In the retail sector, it is very important to understand the return rate of the goods purchased by customers. In this example, we can define this quantity, simply, as the ratio of the number of transactions cancelled (regardless of the transaction value) over the total number of transactions. With this definition, what is the return rate for the French customers? Consider the cancelled transactions as those where the ‘Quantity’ variable has a negative value.</li>
@@ -418,17 +619,27 @@ head(country_transvals)</code></pre>
 </blockquote>
 <p><strong>Ans:</strong></p>
 <blockquote>
-<p>As you can see below there are <strong>149</strong> cancelled transactions owned by customers in France and then the return rate is <code>0.0002749539</code></p>
+<p>As you can see below there are <strong>69</strong> cancelled transactions owned by customers in France and then the return rate is <code>0.1496746</code></p>
 </blockquote>
-<pre class="r"><code>or_df_1 %&gt;%
-  group_by(Country) %&gt;%
+<pre class="r"><code># Get the Total number of unquie transaction rows for France
+france_total_trans &lt;- or_df_1 %&gt;%
   filter(Country == &quot;France&quot;) %&gt;%
-  filter(Quantity &lt; 0) %&gt;%
+  select(Country, InvoiceNo) %&gt;%
+  distinct() %&gt;%
   count() %&gt;%
-  mutate(ReturnRate = n/total_trans)</code></pre>
+  use_series(&quot;n&quot;)
+
+# Calculate the Return Rate for customer in France
+or_df_1 %&gt;%
+  filter(Quantity &lt; 1) %&gt;%
+  filter(Country == &quot;France&quot;) %&gt;%
+  select(Country, InvoiceNo) %&gt;%
+  distinct() %&gt;%
+  count() %&gt;%
+  mutate(ReturnRate = n/france_total_trans)</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Country"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["n"],"name":[2],"type":["int"],"align":["right"]},{"label":["ReturnRate"],"name":[3],"type":["dbl"],"align":["right"]}],"data":[{"1":"France","2":"149","3":"0.0002749539"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["n"],"name":[1],"type":["int"],"align":["right"]},{"label":["ReturnRate"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"69","2":"0.1496746"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <blockquote>
@@ -447,7 +658,7 @@ head(country_transvals)</code></pre>
     funs(sum(., na.rm = T))
   ) %&gt;%
   arrange(desc(TransactionValue)) %&gt;%
-  head</code></pre>
+  head()</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
 {"columns":[{"label":["StockCode"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["TransactionValue"],"name":[2],"type":["dbl"],"align":["right"]}],"data":[{"1":"DOT","2":"206245.48"},{"1":"22423","2":"164762.19"},{"1":"47566","2":"98302.98"},{"1":"85123A","2":"97894.50"},{"1":"85099B","2":"92356.03"},{"1":"23084","2":"66756.59"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
@@ -459,18 +670,14 @@ head(country_transvals)</code></pre>
 </ol>
 </blockquote>
 <p><strong>Ans:</strong></p>
-<blockquote>
-<p>There are <strong>4,373</strong> unique customers represented in the dataset.</p>
-</blockquote>
 <pre class="r"><code>or_df_1 %&gt;%
   select(CustomerID) %&gt;%
+  filter(!is.na(CustomerID)) %&gt;%
   distinct() %&gt;%
-  count()</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["n"],"name":[1],"type":["int"],"align":["right"]}],"data":[{"1":"4373"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+  count() %&gt;%
+  use_series(&quot;n&quot;) %&gt;%
+  sprintf(&quot;There are %d unique customers represented in the dataset.&quot;, .)</code></pre>
+<pre><code>## [1] &quot;There are 4372 unique customers represented in the dataset.&quot;</code></pre>
 </div>
 
 
