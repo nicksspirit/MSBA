@@ -10,6 +10,8 @@ pulp = "*"
 scipy = "*"
 pandas = "*"
 cytoolz = "*"
+xlrd = "*"
+mesa = "*"
 
 [dev-packages]
 jupyter = "*"
