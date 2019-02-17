@@ -193,6 +193,43 @@ You should be taken to the page shown in Fig. 19. At this point your virtual mac
 
 > Note: Please pay attention to the __External IP__ because it will be used to finish the rest of the setup. So it is advised that you keep it handy by memorizing it or written it somewhere that is secure.
 
+### Step 6
+
+While on the page show in Fig. 19 and your VM instance is running, please click on
+the __SSH__ button under the column Connect (Fig. 20).
+
+<div align="center">
+    <img src="assets/step6.png"  alt="virtual machine has been created">
+    <div><span>Fig. 20</span></div>
+</div>
+
+A new tab on your browser will open and Google cloud will begin creating an SSH connection to your server and then open a terminal window to it.
+
+<div align="center">
+    <img src="assets/step6_1.png"  alt="click on ssh button">
+    <div><span>Fig. 21</span></div>
+</div>
+
+Copy the below code and past it to the terminal window
+
+```bash
+curl https://gist.githubusercontent.com/OdinTech3/d227eca7aa2439fa38cada0b7ec9c0e8/raw/0890810a3fa78cac4eb1cf27f944b656eb5da168/manage-user.sh | sudo bash -s <username> <password>
+```
+
+__IT IS IMPORTANT YOU REPLACE THE PLACEHOLDERS `<username>` and `<password>` WITH YOUR OWN USERNAME AND PASSWORD__
+
+Once you have pasted the code then you press the __Enter__ key on your keyboard. You should see an out put similar to this:
+
+```
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1706  100  1706    0     0  10596      0 --:--:-- --:--:-- --:--:-- 10596
+[BASH]  Creating custom group idao .....
+[BASH]  Creating custom user user_nick .....
+[BASH]  The accounts are setup.
+```
+
+You may close the terminal window by closing the browser tab.
 
 <div align="center">
     <div><h2>🎉 Congratualations! You have created your first Google Cloud virtual machine 🎉</h2></div>
