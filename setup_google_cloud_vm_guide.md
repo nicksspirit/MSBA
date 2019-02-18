@@ -191,7 +191,7 @@ You should be taken to the page shown in Fig. 19. At this point your virtual mac
     <div><span>Fig. 19</span></div>
 </div>
 
-> Note: Please pay attention to the __External IP__ because it will be used to finish the rest of the setup. So it is advised that you keep it handy by memorizing it or written it somewhere that is secure.
+> Note: Please pay attention to the __External IP__ because it will be used to finish the rest of the setup. So it is advised that you keep it handy by memorizing it or writting it somewhere that is secure.
 
 ### Step 6
 
