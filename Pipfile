@@ -12,10 +12,13 @@ pandas = "*"
 cytoolz = "*"
 xlrd = "*"
 mesa = "*"
+plotnine = "*"
 
 [dev-packages]
 jupyter = "*"
 python-language-server = {extras = ["yapf"],version = "*"}
+jupyter-contrib-nbextensions = "*"
+hide-code = "*"
 
 [requires]
 python_version = "3.7"
