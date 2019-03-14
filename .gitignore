@@ -27,3 +27,5 @@
 *.Rproj
 .Rproj.user
 *.nb.html
+
+/64038/data/global_findex_database.xlsx
