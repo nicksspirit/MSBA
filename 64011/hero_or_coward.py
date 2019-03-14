@@ -8,16 +8,8 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from typing import Tuple
 import numpy as np
-import cytoolz as tlz
 
 Heading = Tuple[int, int]
-
-# def clamp(val: int, lower: int, upper: int, include: bool = True):
-
-#     if include:
-#         # lambda x, l, u: l if x < l else u if x > u else x
-#         return lower if val < lower else upper if val > upper else val
-#     pass
 
 
 class Person(Agent):
@@ -49,9 +41,6 @@ class Person(Agent):
 
         x_cor: int = np.clip(friend_x + (friend_x - enemy_x) / 2, 1, self.model.grid.width - 1)
         y_cor: int = np.clip(friend_y + (friend_y - enemy_y) / 2, 1, self.model.grid.height - 1)
-
-        # print(x_cor, y_cor)
-        # print(self.model.grid.width, self.model.grid.height)
 
         self.model.grid.move_agent(self, (int(x_cor), int(y_cor)))
 
