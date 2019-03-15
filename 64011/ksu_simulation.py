@@ -28,15 +28,15 @@ def get_grade_score(grade: str):
 
 class Student(Agent):
 
-    def __init__(self, unique_id, model: Model, act, gpa, fuel_tank=100):
+    def __init__(self, unique_id, model: Model, major: str, act: int, gpa: int, enroll_stat: str):
         super().__init__(unique_id, model)
         self.grades: List[Grade] = []
-        self.MAJOR: str = ''
-        self.ACT: int = act
-        self.HS_GPA: int = gpa
+        self.MAJOR = major
+        self.ACT = act
+        self.HS_GPA = gpa
+        self.enrollment_stat = enroll_stat
         self.COL_GPA: int = 0
         self.total_credit_hrs = 0
-        self.enrollment_stat = 'PT'
 
     def _calc_col_gpa(self):
         grade_scores = [get_grade_score(letter_grade) for _, letter_grade in self.grades]
@@ -48,7 +48,7 @@ class Student(Agent):
         return self.total_credit_hrs
 
     @total_credit_hrs.setter
-    def total_credit_hrs(self, value) -> None:
+    def total_credit_hrs(self, value: int) -> None:
 
         if self.enrollment_stat == 'PT' and self.total_credit_hrs <= 11:
             return
@@ -59,10 +59,11 @@ class Student(Agent):
 
 
 class Course(Agent):
-    def __init__(self, unique_id, model: Model):
+
+    def __init__(self, unique_id, model: Model, level: str, credit_hrs: int, class_type: str, college: str, code: str):
         super().__init__(unique_id, model)
-        self.level = 10000
-        self.credit_hrs = 0
-        self.class_type = 'TR'
-        self.COLLEGE = ''
-        self.COURSE_CODE = ''
+        self.level = level
+        self.credit_hrs = credit_hrs
+        self.class_type = class_type
+        self.COLLEGE = college
+        self.COURSE_CODE = code
