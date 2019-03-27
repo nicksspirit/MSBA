@@ -1,5 +1,5 @@
-64018/ClassRepo/
 24056_BA1/
+64038/data/global_findex_database.xlsx
 
 # MacOS
 .DS_Store
@@ -15,6 +15,7 @@
 *.sublime-project
 
 ### R ###
+
 # History files
 .Rhistory
 .Rapp.history
@@ -25,7 +26,4 @@
 # RStudio files
 .Rproj.user/
 *.Rproj
-.Rproj.user
 *.nb.html
-
-/64038/data/global_findex_database.xlsx
