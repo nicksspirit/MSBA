@@ -13,10 +13,11 @@ cytoolz = "*"
 xlrd = "*"
 mesa = "*"
 plotnine = "*"
+scikit-learn = "*"
 
 [dev-packages]
 jupyter = "*"
-python-language-server = {extras = ["yapf"],version = "*"}
+python-language-server = "*"
 jupyter-contrib-nbextensions = "*"
 
 [requires]
