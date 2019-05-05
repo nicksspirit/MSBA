@@ -4,26 +4,19 @@
 # MacOS
 .DS_Store
 
-### Python ###
+# Python
 .venv
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-### SublimeText ###
+# SublimeText
 *.sublime-workspace
 *.sublime-project
 
-### R ###
-
-# History files
-.Rhistory
-.Rapp.history
-
-# Session Data files
-.RData
-
-# RStudio files
-.Rproj.user/
+# RStudio
 *.Rproj
 *.nb.html
+.Rhistory
+.RData
+.Rproj.user
