@@ -3,6 +3,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[scripts]
+"kernel:install" = "ipython kernel install --user --name=MSBA"
+"kernel:uninstall" = "jupyter kernelspec uninstall MSBA"
+
 [packages]
 numpy = "*"
 matplotlib = "*"
@@ -16,9 +20,7 @@ plotnine = "*"
 scikit-learn = "*"
 
 [dev-packages]
-jupyter = "*"
-python-language-server = "*"
-jupyter-contrib-nbextensions = "*"
+ipykernel = "*"
 
 [requires]
 python_version = "3.7"
