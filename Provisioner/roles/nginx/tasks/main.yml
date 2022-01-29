@@ -1,0 +1,93 @@
+---
+- name: Install Nginx
+  apt:
+    name: 'nginx'
+    state: 'present'
+  notify:
+    - Test Nginx and Restart
+
+- name: Create Default Nginx Directories
+  file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: 0755
+  with_items:
+    - '/usr/share/nginx/html'
+    # - '{{ nginx_letsencrypt_root }}'
+    - '/etc/nginx/sites-available'
+    - '/etc/nginx/sites-enabled'
+    - '/etc/nginx/conf.d'
+    - '/etc/nginx/ssl'
+
+- name: Check Nginx User Root Site Exists
+  stat:
+    path: '{{ nginx_site_root }}'
+  register: root_site
+
+- name: Create Nginx User Root Site
+  file:
+    path: '{{ nginx_site_root }}'
+    recurse: yes
+    state: directory
+    owner: '{{ nginx_user }}'
+    group: '{{ nginx_user }}'
+    mode: 0755
+  when: root_site.stat.exists == False
+
+# - name: Move Nginx User index.html
+#   copy:
+#     src: idao/index.html
+#     dest: '{{ nginx_site_root }}'
+#     owner: '{{ nginx_user }}'
+#     group: '{{ nginx_user }}'
+#     mode: 0644
+
+- name: Remove Default Site
+  file:
+    path: '{{ item }}'
+    state: 'absent'
+  with_items:
+    - '/etc/nginx/sites-enabled/default'
+    - '/etc/nginx/sites-available/default'
+  notify:
+    - Test Nginx and Reload
+
+- name: Configure Nginx
+  template:
+    src: 'etc/nginx/nginx.conf.j2'
+    dest: '/etc/nginx/nginx.conf'
+    group: 'root'
+    owner: 'root'
+    mode: '0644'
+  register: nginx_register_nginx_config
+  notify:
+    - Test Nginx and Reload
+
+- name: Configure sites-available (vhosts)
+  template:
+    src: 'etc/nginx/sites-available/idao.conf.j2'
+    dest: '/etc/nginx/sites-available/idao.conf'
+    group: 'root'
+    owner: 'root'
+    mode: '0644'
+  register: nginx_register_vhost_config
+  notify:
+    - Test Nginx and Reload
+
+- name: Symlink sites-available to sites-enabled
+  file:
+    src: '/etc/nginx/sites-available/idao.conf'
+    dest: '/etc/nginx/sites-enabled/idao.conf'
+    state: 'link'
+  notify:
+    - Test Nginx and Restart
+
+- name: Forcefully Restart Nginx
+  service:
+    name: 'nginx'
+    state: 'restarted'
+  when:
+    - nginx_register_nginx_config is changed
+    - nginx_register_vhost_config is changed

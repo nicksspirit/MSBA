@@ -6,6 +6,7 @@ name = "pypi"
 [scripts]
 "kernel:install" = "ipython kernel install --user --name=MSBA"
 "kernel:uninstall" = "jupyter kernelspec uninstall MSBA"
+ssh-client = 'bash -c "ssh-add -K ~/.ssh/$agent-rsa; ssh-add -l"'
 
 [packages]
 numpy = "*"
@@ -21,6 +22,7 @@ scikit-learn = "*"
 
 [dev-packages]
 ipykernel = "*"
+ansible = "*"
 
 [requires]
 python_version = "3.7"

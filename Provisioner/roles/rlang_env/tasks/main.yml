@@ -1,0 +1,26 @@
+---
+- name: Install R
+  apt:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: true
+  vars:
+    packages:
+      - libopenblas-base
+      - r-base
+      - gdebi-core
+  notify:
+    # - install_keras
+    # - install_keras_dep
+    - install_r_packages
+
+- name: Download RStudio Server
+  become: yes
+  become_user: "{{ ansible_user }}"
+  get_url:
+    url: https://download2.rstudio.org/server/trusty/amd64/rstudio-server-1.2.1335-amd64.deb
+    dest: /tmp/rstudio-server.deb
+    force: yes
+    mode: 0644
+  notify:
+    - install_rstudio_server

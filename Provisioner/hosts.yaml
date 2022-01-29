@@ -1,0 +1,54 @@
+---
+all:
+  hosts:
+    vagrant:
+      ansible_host: # <insert host ip>
+  children:
+    msba:
+      hosts:
+        ssudalag:
+          ansible_host: # <insert host ip>
+        david:
+          ansible_host: # <insert host ip>
+        yuqiaoxu1991:
+          ansible_host: # <insert host ip>
+        someike:
+          ansible_host: # <insert host ip>
+        qlam:
+          ansible_host: # <insert host ip>
+        kareem:
+          ansible_host: # <insert host ip>
+        nick:
+          ansible_host: # <insert host ip>
+        jsteen1:
+          ansible_host: # <insert host ip>
+        mmarjanovic2019:
+          ansible_host: # <insert host ip>
+        ntomar:
+          ansible_host: # <insert host ip>
+        srihari:
+          ansible_host: # <insert host ip>
+        athakur2:
+          ansible_host: # <insert host ip>
+        vsoma:
+          ansible_host: # <insert host ip>
+        chanxinghongjing:
+          ansible_host: # <insert host ip>
+        skanba1:
+          ansible_host: # <insert host ip>
+        spalania:
+          ansible_host: # <insert host ip>
+        nkamat:
+          ansible_host: # <insert host ip>
+        magrawa2:
+          ansible_host: # <insert host ip>
+        csamba:
+          ansible_host: # <insert host ip>
+        mpadhye:
+          ansible_host: # <insert host ip>
+        mqutub:
+          ansible_host: # <insert host ip>
+        ajohns93:
+          ansible_host: # <insert host ip>
+        zhaoyuhan01:
+          ansible_host: # <insert host ip>

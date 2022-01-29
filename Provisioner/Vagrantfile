@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$HOSTNAME = "idao"
+$VM_NAME = "#{$HOSTNAME}_vm"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+  config.vm.hostname = $HOSTNAME
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  config.vm.network "private_network", ip: "192.168.33.10"
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # Setting boot timeout to 15mins
+  config.vm.boot_timeout = 900
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = $VM_NAME
+    vb.default_nic_type = "82543GC"
+    vb.memory = "1024"
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = true
+  end
+
+end

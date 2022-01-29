@@ -1,0 +1,24 @@
+---
+- hosts: msba
+  become: yes
+  gather_facts: false
+  pre_tasks:
+    - name: Update Apt Cache
+      apt: update_cache=yes
+
+    - name: Upgrade Packages
+      apt: upgrade=dist
+
+    - name: Install Common Packages
+      apt:
+        name: "{{ packages }}"
+        state: latest
+      vars:
+        packages:
+          - python
+          - python-pip
+          - python-virtualenv
+  roles:
+    - ufw
+    - nginx
+    - rlang_env

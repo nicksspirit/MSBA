@@ -1,0 +1,33 @@
+---
+- name: install_rstudio_server
+  shell: gdebi --non-interactive rstudio-server.deb
+  args:
+    chdir: /tmp/
+    executable: /bin/bash
+
+- name: install_r_packages
+  shell: |
+    r_pkgs=({{r_packages|join(" ")}})
+
+    for pkg in "${r_pkgs[@]}"; do
+      R -e "install.packages('${pkg}', repos='http://cran.rstudio.com/')"
+    done
+  args:
+    executable: /bin/bash
+  vars:
+    r_packages:
+      - ggplot2
+      - dplyr
+      - magrittr
+
+- name: install_keras
+  shell: |
+    R -e "install.packages('keras', repos='http://cran.rstudio.com/')"
+  args:
+    executable: /bin/bash
+
+- name: install_keras_dep
+  shell: |
+    R -e "library(keras); install_keras()"
+  args:
+    executable: /bin/bash
